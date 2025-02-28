@@ -131,14 +131,6 @@ function makeCustomComponent(name, tag, url, version, custom_attributes) {
         "custom_attributes": custom_attributes
     })
 }
-function checkElementExists(id) {
-    var element = document.getElementById(id);
-    if (element) {
-        return true;
-    } else {
-        return false;
-    }
-}
 function activate_triggers() {
     try {
         let Triggers = document.querySelectorAll('trigger'); // Select <trigger> tags
@@ -151,6 +143,14 @@ function activate_triggers() {
     }
 }
 // utils
+function checkElementExists(id) {
+    var element = document.getElementById(id);
+    if (element) {
+        return true;
+    } else {
+        return false;
+    }
+}
 async function makeRequest(url) {
     try {
         const response = await fetch(url);
