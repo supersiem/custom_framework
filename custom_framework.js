@@ -41,7 +41,7 @@ async function activateCustomComponent() {
                 data = data.replaceAll("{{name}}", component.name);
                 component.custom_attributes.forEach(attr => {
                     data = data.replaceAll("{{" + attr + "}}", element.getAttribute(attr));
-                })
+                });
                 element.innerHTML = data;
                 changeTag(element, "custom_component_container");
                 activate_triggers();
@@ -52,7 +52,7 @@ async function activateCustomComponent() {
                 data = data.replaceAll("{{name}}", component.name);
                 component.custom_attributes.forEach(attr => {
                     data = data.replaceAll("{{" + attr + "}}", element.getAttribute(attr));
-                })
+                });
                 eval(data);
             });
 
@@ -69,7 +69,7 @@ async function goTo(url) {
             "inputs": []
         },
         "url": url
-    }
+    };
     let url_as_array = url.split(" ");
     url_as_array.forEach(config => {
         if (config == "--dynamicPage" || config == "-dp") {
@@ -82,7 +82,7 @@ async function goTo(url) {
                 "value": config.split("=")[2]
             });
         } else if (config == "") {
-            return
+            return;
         }
         else {
             config_for_goto.url = config;
@@ -91,12 +91,10 @@ async function goTo(url) {
 
     if (config_for_goto.url) {
         if (config_for_goto.dynamicPage) {
-            config_for_goto.url = custom_root + config_for_goto.url + "/" + config_for_goto.url;
-        } else {
-            config_for_goto.url = custom_root + config_for_goto.url;
+            config_for_goto.url = config_for_goto.url + "/" + config_for_goto.url;
         }
 
-        let html = await makeRequest(config_for_goto.url + ".html");
+        let html = await makeRequest(custom_root + config_for_goto.url + ".html");
 
         if (config_for_goto.page_inputs.has_inputs) {
             config_for_goto.page_inputs.inputs.forEach(input => {
@@ -112,7 +110,7 @@ async function goTo(url) {
         activate();
 
         if (config_for_goto.dynamicPage) {
-            let javascript = await makeRequest(config_for_goto.url + ".js");
+            let javascript = await makeRequest(custom_root + config_for_goto.url + ".js");
             if (config_for_goto.page_inputs.has_inputs) {
                 config_for_goto.page_inputs.inputs.forEach(input => {
                     javascript = javascript.replaceAll("{" + input.name + "}", input.value);
@@ -129,7 +127,7 @@ function makeCustomComponent(name, tag, url, version, custom_attributes) {
         "url": url,
         "version": version,
         "custom_attributes": custom_attributes
-    })
+    });
 }
 function activate_triggers() {
     try {
