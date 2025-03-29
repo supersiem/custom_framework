@@ -1,0 +1,22 @@
+{
+    "customComponents": [
+        {
+            "name": "customComponent",
+            "tag": "customComponent",
+            "url": "customComponent",
+            "version": "2.0",
+            "custom_attributes": [
+                "data"
+            ]
+        },
+        {
+            "name": "jeff",
+            "tag": "jeff",
+            "url": "jeff",
+            "version": "ik ben jeff",
+            "custom_attributes": []
+        }
+    ],
+    "dev": true,
+    "custom_root": "pages/"
+}

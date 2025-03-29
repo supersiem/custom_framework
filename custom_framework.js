@@ -1,12 +1,26 @@
 let custom_root = "";
-let custom_components = [{
-    "name": "custom_component",
-    "tag": "custom_component",
-    "url": "custom_component",
-    "version": "1.0",
-    "custom_attributes": ["data"]
-}];
+let custom_components = [];
+let curent_page = "index.html";
+let development = false;
+// onload
+window.onload = function () {
+    makeRequest("config.json").then(data => {
+        jsondata = JSON.parse(data);
+        custom_root = jsondata.custom_root;
+        development = jsondata.dev;
+        jsondata.customComponents.forEach(component => {
+            custom_components.push({
+                "name": component.name,
+                "tag": component.tag,
+                "url": component.url,
+                "version": component.version,
+                "custom_attributes": component.custom_attributes
+            });
+        }
+        );
 
+    });
+};
 function activate() {
     activateCustomComponent();
     activateWeblinks();
@@ -35,10 +49,13 @@ async function activateCustomComponent() {
         custom_components.forEach(component => {
             let linkTriggers3 = document.querySelectorAll(component.tag);
             linkTriggers3.forEach(async element => {
-                let data = await makeRequest(custom_root + component.tag + "/" + component.url + ".html");
-
+                let data = await makeRequest("Components/" + component.tag + "/" + component.url + ".html");
                 data = data.replaceAll("{{version}}", component.version);
+                data = data.replaceAll("{{innerhtml}}", element.innerHTML);
                 data = data.replaceAll("{{name}}", component.name);
+                data = data.replaceAll("{{url}}", window.location.href);
+                data = data.replaceAll("{{page}}", curent_page);
+
                 component.custom_attributes.forEach(attr => {
                     data = data.replaceAll("{{" + attr + "}}", element.getAttribute(attr));
                 });
@@ -46,7 +63,7 @@ async function activateCustomComponent() {
                 changeTag(element, "custom_component_container");
                 activate_triggers();
 
-                data = await makeRequest(custom_root + component.tag + "/" + component.url + ".js");
+                data = await makeRequest("Components/" + component.tag + "/" + component.url + ".js");
 
                 data = data.replaceAll("{{version}}", component.version);
                 data = data.replaceAll("{{name}}", component.name);
@@ -93,7 +110,7 @@ async function goTo(url) {
         if (config_for_goto.dynamicPage) {
             config_for_goto.url = config_for_goto.url + "/" + config_for_goto.url;
         }
-
+        curent_page = custom_root + config_for_goto.url + ".html";
         let html = await makeRequest(custom_root + config_for_goto.url + ".html");
 
         if (config_for_goto.page_inputs.has_inputs) {
@@ -121,6 +138,7 @@ async function goTo(url) {
     }
 }
 function makeCustomComponent(name, tag, url, version, custom_attributes) {
+    // warn: this function is deprecated, use the config file instead
     custom_components.push({
         "name": name,
         "tag": tag,
@@ -188,4 +206,7 @@ function changeTag(element, newTagName) {
 
     // Return the new element
     return newElement;
+}
+function randomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
