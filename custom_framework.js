@@ -1,8 +1,17 @@
 let config;
 let URL_ = "";
+let customElementTagsAndCode = [];
 async function run() {
     config = JSON.parse(await get("config.json"));
+    customElementsSetup();
     activate();
+}
+async function customElementsSetup() {
+    for (const tag of config.customElementCollection) {
+        const code = await get(`elements/${tag}.js`);
+        injectJS(code);
+        eval(`${tag}.tags.forEach(tag => {customElementTagsAndCode.push(tag)})`);
+    }
 }
 run();
 function injectHTML(html) {
@@ -12,6 +21,12 @@ function injectHTML(html) {
 
 function activate() {
     builtInElements.forEach(tag => {
+        const elements = document.querySelectorAll(tag.tag);
+        elements.forEach(element => {
+            tag.code(element);
+        });
+    });
+    customElementTagsAndCode.forEach(tag => {
         const elements = document.querySelectorAll(tag.tag);
         elements.forEach(element => {
             tag.code(element);
@@ -84,10 +99,12 @@ const builtInElements = [
         "code": loadCode
     }
 ];
+let customElements;
 
 // functions voor de built in elements
 function inlineJS(element) {
     element.outerHTML = eval(element.innerHTML);
+    activate();
 }
 function weblink(element) {
     const anchorElement = changeTag(element, "a");

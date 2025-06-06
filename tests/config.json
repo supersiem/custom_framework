@@ -1,4 +1,7 @@
 {
     "pageDirectory": "pages",
-    "debug": true
+    "debug": true,
+    "customElementCollection": [
+        "colorText"
+    ]
 }
