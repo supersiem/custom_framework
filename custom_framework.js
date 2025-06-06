@@ -103,8 +103,17 @@ let customElements;
 
 // functions voor de built in elements
 function inlineJS(element) {
-    element.outerHTML = eval(element.innerHTML);
+    const code = `
+    function inlinecode(self) {
+        ${element.innerHTML.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&')}
+    }
+    `;
+    injectJS(code, "inlineJSCode");
+    element.innerHTML = inlinecode(element);
+    changeTag(element, "span");
     activate();
+    document.getElementById("inlineJSCode").remove();
+    return element;
 }
 function weblink(element) {
     const anchorElement = changeTag(element, "a");

@@ -2,9 +2,9 @@
     <h1>
         <inlineJS>
             try {
-            score;
+            return score;
             } catch (error) {
-            `<rood>score is niet gedefinieerd ga naar de <weblink href="knop">klik de knop pagina</weblink>
+            return `<rood>score is niet gedefinieerd ga naar de <weblink href="knop">klik de knop pagina</weblink>
             </rood>
             `;
             }
@@ -12,15 +12,15 @@
     </h1>
     <h2>
         <inlineJS>
-            "er zijn " + builtInElements.length + " elementen in dit framework"
+            return "er zijn " + builtInElements.length + " elementen in dit framework";
         </inlineJS>
     </h2>
     <h2>
         <inlineJS>
             try {
-            "er zijn " + customElementTagsAndCode.length + " custom elementen in dit framework"
+            return "er zijn " + customElementTagsAndCode.length + " custom elementen in dit framework";
             } catch (error) {
-            `<rood>customElementTagsAndCode is niet gedefinieerd probeer de pagina te <a href="#">herladen</a>
+            return `<rood>customElementTagsAndCode is niet gedefinieerd probeer de pagina te <a href="#">herladen</a>
             </rood>
             `;
             }
