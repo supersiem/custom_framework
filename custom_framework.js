@@ -9,8 +9,8 @@ async function run() {
 async function customElementsSetup() {
     for (const tag of config.customElementCollection) {
         const code = await get(`elements/${tag}.js`);
-        injectJS(code);
-        eval(`${tag}.tags.forEach(tag => {customElementTagsAndCode.push(tag)})`);
+        injectJS(code + `${tag}.tags.forEach(tag => {customElementTagsAndCode.push(tag)})`
+            , tag + "_JS");
     }
 }
 run();
