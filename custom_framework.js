@@ -20,18 +20,36 @@ function injectHTML(html) {
 }
 
 function activate() {
-    builtInElements.forEach(tag => {
-        const elements = document.querySelectorAll(tag.tag);
-        elements.forEach(element => {
+    // Process the document body and all its descendants
+    processElementAndChildren(document.body);
+}
+
+function processElementAndChildren(element) {
+    // Process this element if it matches any of our custom tags
+    processElement(element);
+
+    // Recursively process all child elements
+    for (let i = 0; i < element.children.length; i++) {
+        processElementAndChildren(element.children[i]);
+    }
+}
+
+function processElement(element) {
+    // Check built-in elements
+    for (const tag of builtInElements) {
+        if (element.tagName.toLowerCase() === tag.tag.toLowerCase()) {
             tag.code(element);
-        });
-    });
-    customElementTagsAndCode.forEach(tag => {
-        const elements = document.querySelectorAll(tag.tag);
-        elements.forEach(element => {
+            return; // Stop after first match
+        }
+    }
+
+    // Check custom elements
+    for (const tag of customElementTagsAndCode) {
+        if (element.tagName.toLowerCase() === tag.tag.toLowerCase()) {
             tag.code(element);
-        });
-    });
+            return;
+        }
+    }
 }
 async function get(url) {
     try {
@@ -82,6 +100,10 @@ async function injectJS(code, id = undefined) {
     document.head.appendChild(script);
 }
 const builtInElements = [
+    {
+        "tag": "if",
+        "code": ifElement
+    },
     {
         "tag": "inlineJS",
         "code": inlineJS
@@ -147,4 +169,13 @@ function injectCSS(code, id = undefined) {
     style.textContent = code;
     if (id) style.id = id;
     document.head.appendChild(style);
+}
+function ifElement(element) {
+    const code = element.getAttribute("if");
+    if (eval(code)) {
+        return element;
+    } else {
+        element.remove();
+        return null;
+    }
 }
