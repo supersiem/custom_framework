@@ -1,193 +1,182 @@
-let custom_root = "";
-let custom_components = [{
-    "name": "custom_component",
-    "tag": "custom_component",
-    "url": "custom_component",
-    "version": "1.0",
-    "custom_attributes": ["data"]
-}];
+let config;
+let URL_ = "";
+let customElementTagsAndCode = [];
+async function run() {
+    config = JSON.parse(await get("config.json"));
+    customElementsSetup();
+    goTo(config.homePage);
+    activate();
+}
+async function customElementsSetup() {
+    for (const tag of config.customElementCollection) {
+        const code = await get(`elements/${tag}.js`);
+        injectJS(code + `${tag}.tags.forEach(tag => {customElementTagsAndCode.push(tag)})`
+            , tag + "_JS");
+    }
+}
+run();
+function injectHTML(html) {
+    let page = document.querySelector("page");
+    page.innerHTML = html;
+}
 
 function activate() {
-    activateCustomComponent();
-    activateWeblinks();
-    activate_triggers();
+    // Process the document body and all its descendants
+    processElementAndChildren(document.body);
 }
-async function activateWeblinks() {
-    try {
-        let allLinks = document.querySelectorAll('weblink'); // Select <weblink> tags
-        allLinks.forEach(element => {
-            let originalLink = element.getAttribute('href'); // Get the original link
-            if (originalLink && originalLink !== "") {
-                element.setAttribute('href', "javascript:goTo('" + originalLink + "')"); // Set the href to JS function
-                element.innerHTML = element.innerHTML; // Transfer inner content of <weblink> to <a>
 
-                changeTag(element, 'a'); // Replace <weblink> with the new <a> tag
+function processElementAndChildren(element) {
+    // Process this element if it matches any of our custom tags
+    processElement(element);
 
-            }
-        });
-
-    } catch (error) {
-        console.error('Error:', error);
+    // Recursively process all child elements
+    for (let i = 0; i < element.children.length; i++) {
+        processElementAndChildren(element.children[i]);
     }
 }
-async function activateCustomComponent() {
-    try {
-        custom_components.forEach(component => {
-            let linkTriggers3 = document.querySelectorAll(component.tag);
-            linkTriggers3.forEach(async element => {
-                let data = await makeRequest(custom_root + component.tag + "/" + component.url + ".html");
 
-                data = data.replaceAll("{{version}}", component.version);
-                data = data.replaceAll("{{name}}", component.name);
-                component.custom_attributes.forEach(attr => {
-                    data = data.replaceAll("{{" + attr + "}}", element.getAttribute(attr));
-                })
-                element.innerHTML = data;
-                changeTag(element, "custom_component_container");
-                activate_triggers();
-
-                data = await makeRequest(custom_root + component.tag + "/" + component.url + ".js");
-
-                data = data.replaceAll("{{version}}", component.version);
-                data = data.replaceAll("{{name}}", component.name);
-                component.custom_attributes.forEach(attr => {
-                    data = data.replaceAll("{{" + attr + "}}", element.getAttribute(attr));
-                })
-                eval(data);
-            });
-
-        });
-    } catch (error) {
-        console.error('Error:', error);
+function processElement(element) {
+    // Check built-in elements
+    for (const tag of builtInElements) {
+        if (element.tagName.toLowerCase() === tag.tag.toLowerCase()) {
+            tag.code(element);
+            return; // Stop after first match
+        }
     }
-}
-async function goTo(url) {
-    let config_for_goto = {
-        "dynamicPage": false,
-        "page_inputs": {
-            "has_inputs": false,
-            "inputs": []
-        },
-        "url": url
-    }
-    let url_as_array = url.split(" ");
-    url_as_array.forEach(config => {
-        if (config == "--dynamicPage" || config == "-dp") {
-            config_for_goto.dynamicPage = true;
+
+    // Check custom elements
+    for (const tag of customElementTagsAndCode) {
+        if (element.tagName.toLowerCase() === tag.tag.toLowerCase()) {
+            tag.code(element);
             return;
-        } else if (config.startsWith("--page_inputs") || config.startsWith("-pi")) {
-            config_for_goto.page_inputs.has_inputs = true;
-            config_for_goto.page_inputs.inputs.push({
-                "name": config.split("=")[1],
-                "value": config.split("=")[2]
-            });
-        } else if (config == "") {
-            return
-        }
-        else {
-            config_for_goto.url = config;
-        }
-    });
-
-    if (config_for_goto.url) {
-        if (config_for_goto.dynamicPage) {
-            config_for_goto.url = custom_root + config_for_goto.url + "/" + config_for_goto.url;
-        } else {
-            config_for_goto.url = custom_root + config_for_goto.url;
-        }
-
-        let html = await makeRequest(config_for_goto.url + ".html");
-
-        if (config_for_goto.page_inputs.has_inputs) {
-            config_for_goto.page_inputs.inputs.forEach(input => {
-                html = html.replaceAll("{" + input.name + "}", input.value);
-            });
-        }
-
-        if (checkElementExists('body')) {
-            document.getElementById('body').innerHTML = html;
-        } else {
-            document.querySelector('webpage').innerHTML = html;
-        }
-        activate();
-
-        if (config_for_goto.dynamicPage) {
-            let javascript = await makeRequest(config_for_goto.url + ".js");
-            if (config_for_goto.page_inputs.has_inputs) {
-                config_for_goto.page_inputs.inputs.forEach(input => {
-                    javascript = javascript.replaceAll("{" + input.name + "}", input.value);
-                });
-            }
-            eval(javascript);
         }
     }
 }
-function makeCustomComponent(name, tag, url, version, custom_attributes) {
-    custom_components.push({
-        "name": name,
-        "tag": tag,
-        "url": url,
-        "version": version,
-        "custom_attributes": custom_attributes
-    })
-}
-function activate_triggers() {
-    try {
-        let Triggers = document.querySelectorAll('trigger'); // Select <trigger> tags
-        Triggers.forEach(element => {
-            eval(element.innerHTML);
-            element.remove();
-        });
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-// utils
-function checkElementExists(id) {
-    var element = document.getElementById(id);
-    if (element) {
-        return true;
-    } else {
-        return false;
-    }
-}
-async function makeRequest(url) {
+async function get(url) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const data = await response.text();
-        return data;
+        return await response.text();
     } catch (error) {
-        console.error('Error:', error);
-        return null;
+        console.error("Error fetching data:", url, error);
+        throw error;
     }
 }
-function isMobile() {
-    return (window.innerWidth <= 800);
+async function goTo(url) {
+    const htmlCode = await get(`${config.pageDirectory}/${url}/${url}.html`);
+    try {
+        const jsCode = await get(`${config.pageDirectory}/${url}/${url}.js`);
+        if (jsCode && document.getElementById(url + "_JS") == undefined) {
+            injectJS(jsCode, url + "_JS");
+        }
+    } catch (error) {
+        if (config.debug) {
+            console.log(`No JS file found for ${url}`);
+        }
+    }
+    try {
+        const CSSCode = await get(`${config.pageDirectory}/${url}/${url}.css`);
+        if (CSSCode && document.getElementById(url + "_CSS") == undefined) {
+            injectCSS(CSSCode, url + "_CSS");
+        }
+    } catch (error) {
+        if (config.debug) {
+            console.log(`No CSS file found for ${url}`);
+        }
+    }
+    if (config.debug) {
+        console.log(htmlCode);
+    }
+    URL_ = url;
+    injectHTML(htmlCode);
+    activate();
 }
-function str(non_string) {
-    return non_string.toString();
+async function injectJS(code, id = undefined) {
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.textContent = code;
+    script.id = id;
+    document.head.appendChild(script);
 }
-function num(non_number) {
-    return Number(non_number);
+const builtInElements = [
+    {
+        "tag": "if",
+        "code": ifElement
+    },
+    {
+        "tag": "inlineJS",
+        "code": inlineJS
+    },
+    {
+        "tag": "weblink",
+        "code": weblink
+    },
+    {
+        "tag": "padding",
+        "code": padding
+    },
+    {
+        "tag": "loadCode",
+        "code": loadCode
+    }
+];
+let customElements;
+
+// functions voor de built in elements
+function inlineJS(element) {
+    const code = `
+    function inlinecode(self) {
+        ${element.innerHTML.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&')}
+    }
+    `;
+    injectJS(code, "inlineJSCode");
+    element.innerHTML = inlinecode(element);
+    changeTag(element, "span");
+    activate();
+    document.getElementById("inlineJSCode").remove();
+    return element;
 }
+function weblink(element) {
+    const anchorElement = changeTag(element, "a");
+    const url = element.getAttribute("href");
+    anchorElement.href = `javascript:goTo('${url}')`;
+}
+async function loadCode(element) {
+    let Loadurl = element.getAttribute("url");
+    Loadurl = `${config.pageDirectory}/${URL_}/${Loadurl}.js`;
+    const code = await get(Loadurl);
+    injectJS(code, "loadCodeCode");
+    element.remove();
+}
+function padding(element) {
+    const divElement = changeTag(element, "div");
+    divElement.style.padding = "10px";
+    return divElement;
+}
+
 function changeTag(element, newTagName) {
     if (!element) return null;
-
-    // Create a new element with the desired tag
     const newElement = document.createElement(newTagName);
-
-    // Copy the attributes from the old element to the new one
     [...element.attributes].forEach(attr => newElement.setAttribute(attr.name, attr.value));
-
-    // Copy the content (if any)
     newElement.innerHTML = element.innerHTML;
-
-    // Replace the old element with the new one
     element.parentNode.replaceChild(newElement, element);
-
-    // Return the new element
     return newElement;
+}
+function injectCSS(code, id = undefined) {
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.textContent = code;
+    if (id) style.id = id;
+    document.head.appendChild(style);
+}
+function ifElement(element) {
+    const code = element.getAttribute("if");
+    if (eval(code)) {
+        return element;
+    } else {
+        element.remove();
+        return null;
+    }
 }

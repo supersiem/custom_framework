@@ -1,0 +1,18 @@
+<div class="container">
+    <inlineJS>
+        if (typeof score === 'undefined') {
+        return `<h1>
+            <rood>score is niet gedefinieerd ga naar de <weblink href="knop">klik de knop pagina</weblink>
+            </rood>
+        </h1>`;
+        }
+        else { return `
+        <if if="score > 10">
+            <h1>Waar!</h1>
+        </if>
+        <if if="score < 10">
+            <h1>Niet waar!</h1>
+        </if>
+        `}
+    </inlineJS>
+</div>

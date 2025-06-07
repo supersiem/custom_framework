@@ -1,0 +1,8 @@
+{
+    "pageDirectory": "pages",
+    "homePage": "start",
+    "debug": true,
+    "customElementCollection": [
+        "colorText"
+    ]
+}

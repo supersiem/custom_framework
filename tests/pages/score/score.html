@@ -1,0 +1,29 @@
+<div class="container">
+    <h1>
+        <inlineJS>
+            try {
+            return score;
+            } catch (error) {
+            return `<rood>score is niet gedefinieerd ga naar de <weblink href="knop">klik de knop pagina</weblink>
+            </rood>
+            `;
+            }
+        </inlineJS>
+    </h1>
+    <h2>
+        <inlineJS>
+            return "er zijn " + builtInElements.length + " elementen in dit framework";
+        </inlineJS>
+    </h2>
+    <h2>
+        <inlineJS>
+            try {
+            return "er zijn " + customElementTagsAndCode.length + " custom elementen in dit framework";
+            } catch (error) {
+            return `<rood>customElementTagsAndCode is niet gedefinieerd probeer de pagina te <a href="#">herladen</a>
+            </rood>
+            `;
+            }
+        </inlineJS>
+    </h2>
+</div>
