@@ -4,6 +4,7 @@ let customElementTagsAndCode = [];
 async function run() {
     config = JSON.parse(await get("config.json"));
     customElementsSetup();
+    goTo(config.homePage);
     activate();
 }
 async function customElementsSetup() {
