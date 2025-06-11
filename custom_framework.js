@@ -1,5 +1,5 @@
 let config;
-let URL_ = "";
+let current_url = "";
 let customElementTagsAndCode = [];
 async function run() {
     config = JSON.parse(await get("config.json"));
@@ -89,7 +89,7 @@ async function goTo(url) {
     if (config.debug) {
         console.log(htmlCode);
     }
-    URL_ = url;
+    current_url = url;
     injectHTML(htmlCode);
     activate();
 }
@@ -159,7 +159,7 @@ function weblink(element) {
 }
 async function loadCode(element) {
     let Loadurl = element.getAttribute("url");
-    Loadurl = `${config.pageDirectory}/${URL_}/${Loadurl}.js`;
+    Loadurl = `${config.pageDirectory}/${current_url}/${Loadurl}.js`;
     const code = await get(Loadurl);
     injectJS(code, "loadCodeCode");
     element.remove();
