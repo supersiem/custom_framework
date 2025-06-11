@@ -125,14 +125,28 @@ const builtInElements = [
 let customElements;
 
 // functions voor de built in elements
-function inlineJS(element) {
-    const code = `
-    function inlinecode(self) {
-        ${element.innerHTML.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&')}
+async function inlineJS(element) {
+    const innerhtml = element.innerHTML;
+    if (element.getAttribute("preload")) {
+        element.innerHTML = element.getAttribute("preload");
+    }
+    if (element.getAttribute("async") == "true") {
+        const code = `
+    async function inlinecode(self) {
+        ${innerhtml.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&')}
     }
     `;
-    injectJS(code, "inlineJSCode");
-    element.innerHTML = inlinecode(element);
+        injectJS(code, "inlineJSCode");
+        element.innerHTML = await inlinecode(element);
+    } else {
+        const code = `
+    function inlinecode(self) {
+        ${innerhtml.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&')}
+    }
+    `;
+        injectJS(code, "inlineJSCode");
+        element.innerHTML = inlinecode(element);
+    }
     changeTag(element, "span");
     activate();
     document.getElementById("inlineJSCode").remove();
