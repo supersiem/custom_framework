@@ -4,7 +4,12 @@ let customElementTagsAndCode = [];
 async function run() {
     config = JSON.parse(await get("config.json"));
     customElementsSetup();
-    goTo(config.homePage);
+    url = new URL(window.location.href);
+    if (url.searchParams.get("page")) {
+        goTo(url.searchParams.get("page"));
+    } else {
+        goTo(config.homePage);
+    }
     activate();
 }
 async function customElementsSetup() {
@@ -90,6 +95,9 @@ async function goTo(url) {
         console.log(htmlCode);
     }
     current_url = url;
+    const current = new URL(window.location.href);
+    current.searchParams.set("page", url);
+    history.replaceState(null, "", current.toString());
     injectHTML(htmlCode);
     activate();
 }
@@ -193,4 +201,21 @@ function ifElement(element) {
         element.remove();
         return null;
     }
+}
+function getUrlBasedGlobalVariable(variableName) {
+    if (variableName === "page") {
+        alert("sry dit word gebruikt door de url page system")
+    }
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(variableName)) {
+        return url.searchParams.get(variableName);
+    }
+}
+function setUrlBasedGlobalVariable(variableName, value) {
+    if (variableName === "page") {
+        alert("sry dit word gebruikt door de url page system")
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set(variableName, value);
+    history.replaceState(null, "", url.toString());
 }
